@@ -64,6 +64,18 @@ For the input `foo some/path -baz --hello world`, ReactBash would parse the inpu
 }
 ```
 
+Extensions are also allowed to return a promise, to handle long running commands.
+Similarly to synchronous extensions, the promise should resolve to the new state of the terminal.
+If it fails, the rejected error (if available) will be printed in the terminal:
+
+```js
+export const clear = {
+    exec: ({ structure, history, cwd }, command) => {
+        return Promise.resolve({ structure, cwd, history: [] });
+    },
+};
+```
+
 ### History
 The history prop and state arrays are lists of items that will be displayed as history items in the terminal. Essentially, anything that gets 'printed' out onto the terminal is a `history` item. The `prefix` prop is available to alter the bash user info that prepends commands in the history. If you'd like to add a welcome message to the initial state of the terminal, it's as easy as passing in a prop.
 
