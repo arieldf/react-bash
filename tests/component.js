@@ -94,7 +94,7 @@ describe('ReactBash component', () => {
         let instance;
 
         beforeEach(() => {
-            wrapper = shallow(<Terminal />);
+            wrapper = shallow(<Terminal _observeBashExecutions={ true } />);
             instance = wrapper.instance();
             instance.refs = { input: { value: '', scrollIntoView: () => {} } };
         });
@@ -118,7 +118,9 @@ describe('ReactBash component', () => {
             chai.assert.strictEqual(wrapper.state().history.length, 1);
             wrapper.find('input').simulate('keydown', keyEvent(17));
             wrapper.find('input').simulate('keyup', keyEvent(76));
-            chai.assert.strictEqual(wrapper.state().history.length, 0);
+            return wrapper.state()._bashExecutionsObserver.then(() => {
+                chai.assert.strictEqual(wrapper.state().history.length, 0);
+            });
         });
 
         it('should not clear on only l', () => {
@@ -166,10 +168,11 @@ describe('ReactBash component', () => {
         let bashStub;
 
         beforeEach(() => {
-            wrapper = shallow(<Terminal />);
+            wrapper = shallow(<Terminal _observeBashExecutions={ true } />);
             instance = wrapper.instance();
             instance.refs = { input: { value: 'Foo', scrollIntoView: () => {} } };
-            bashStub = sinon.stub(instance.Bash, 'execute').returns({ cwd: 'bar' });
+            bashStub = sinon.stub(instance.Bash, 'execute')
+                .returns(Promise.resolve({ cwd: 'bar' }));
         });
 
         it('should attempt to execute the command', () => {
@@ -179,7 +182,9 @@ describe('ReactBash component', () => {
 
         it('should update state', () => {
             wrapper.find('form').simulate('submit', submitEvent('Foo'));
-            chai.assert.strictEqual(wrapper.state().cwd, 'bar');
+            return wrapper.state()._bashExecutionsObserver.then(() => {
+                chai.assert.strictEqual(wrapper.state().cwd, 'bar');
+            });
         });
 
         it('should clear the input', () => {
