@@ -42,27 +42,37 @@ describe('bash class methods', () => {
         });
 
         it('should append command to prevCommands', () => {
-            bash.execute('test', mockState);
-            chai.assert.strictEqual(bash.prevCommands.length, 1);
-            chai.assert.strictEqual(bash.prevCommands[0], 'test');
+            let testCase = bash.execute('test', mockState);
+            return testCase.then(() => {
+                chai.assert.strictEqual(bash.prevCommands.length, 1);
+                chai.assert.strictEqual(bash.prevCommands[0], 'test');
+            });
         });
 
         it('should increase prevCommandsIndex', () => {
-            bash.execute('test', mockState);
-            chai.assert.strictEqual(bash.prevCommandsIndex, 1);
+            let testCase = bash.execute('test', mockState);
+            return testCase.then(() => {
+                chai.assert.strictEqual(bash.prevCommandsIndex, 1);
+            });
         });
 
         it('should add input to history', () => {
-            const { history } = bash.execute('ls', mockState);
-            chai.assert.strictEqual(history.length, 2);
-            chai.assert.strictEqual(history[0].value, 'ls');
-            chai.assert.strictEqual(history[0].cwd, '');
+            let testCase = bash.execute('ls', mockState);
+            return testCase.then((newState) => {
+                const { history } = newState;
+                chai.assert.strictEqual(history.length, 2);
+                chai.assert.strictEqual(history[0].value, 'ls');
+                chai.assert.strictEqual(history[0].cwd, '');
+            });
         });
 
         it('should not break on empty input', () => {
-            const { history } = bash.execute('', mockState);
-            chai.assert.strictEqual(history.length, 1);
-            chai.assert.strictEqual(history[0].value, '');
+            let testCase = bash.execute('', mockState);
+            return testCase.then((newState) => {
+                const { history } = newState;
+                chai.assert.strictEqual(history.length, 1);
+                chai.assert.strictEqual(history[0].value, '');
+            });
         });
 
         // Full command testing is in tests/command.js
@@ -78,44 +88,66 @@ describe('bash class methods', () => {
         commands.forEach(data => {
             it(`should handle the ${data.command} command`, () => {
                 const stub = sinon.stub(bash.commands[data.command], 'exec');
-                bash.execute(`${data.command} ${data.args}`, mockState);
-                chai.assert.strictEqual(stub.called, true);
-                stub.restore();
+                const testCase = bash.execute(`${data.command} ${data.args}`, mockState);
+                return testCase.then(
+                    () => {
+                        chai.assert.strictEqual(stub.called, true);
+                        stub.restore();
+                    },
+                    (error) => {
+                        chai.assert.fail(error);
+                        stub.restore();
+                    });
             });
         });
 
         it('should handle unknown commands', () => {
             const expected = Errors.COMMAND_NOT_FOUND.replace('$1', 'commandDoesNotExist');
-            const { history } = bash.execute('commandDoesNotExist', mockState);
-            chai.assert.strictEqual(history.length, 2);
-            chai.assert.strictEqual(history[1].value, expected);
+            const testCase = bash.execute('commandDoesNotExist', mockState);
+            return testCase.then((newState) => {
+                const { history } = newState;
+                chai.assert.strictEqual(history.length, 2);
+                chai.assert.strictEqual(history[1].value, expected);
+            });
         });
 
         it('should only print the unknown command in error', () => {
             const expected = Errors.COMMAND_NOT_FOUND.replace('$1', 'commandDoesNotExist');
-            const { history } = bash.execute('commandDoesNotExist -la test/file.txt', mockState);
-            chai.assert.strictEqual(history[1].value, expected);
+            const testCase = bash.execute('commandDoesNotExist -la test/file.txt', mockState);
+            return testCase.then((newState) => {
+                const { history } = newState;
+                chai.assert.strictEqual(history[1].value, expected);
+            });
         });
 
         it('should handle multiple commands with ;', () => {
-            const { history } = bash.execute('cd dir1; pwd', mockState);
-            chai.assert.strictEqual(history.length, 2);
-            chai.assert.strictEqual(history[1].value, '/dir1');
+            const testCase = bash.execute('cd dir1; pwd', mockState);
+            return testCase.then((newState) => {
+                const { history } = newState;
+                chai.assert.strictEqual(history.length, 2);
+                chai.assert.strictEqual(history[1].value, '/dir1');
+            });
         });
 
         it('should handle multiple commands with successful &&', () => {
-            const { history } = bash.execute('cd dir1 && pwd', mockState);
-            chai.assert.strictEqual(history.length, 2);
-            chai.assert.strictEqual(history[1].value, '/dir1');
+            const testCase = bash.execute('cd dir1; pwd', mockState);
+            return testCase.then((newState) => {
+                const { history } = newState;
+                chai.assert.strictEqual(history.length, 2);
+                chai.assert.strictEqual(history[1].value, '/dir1');
+            });
         });
 
         it('should handle multiple commands with unsuccessful &&', () => {
             const input = 'cd doesNotExist && pwd';
             const expected1 = Errors.NO_SUCH_FILE.replace('$1', 'doesNotExist');
-            const { history } = bash.execute(input, mockState);
-            chai.assert.strictEqual(history.length, 2);
-            chai.assert.strictEqual(history[0].value, input);
-            chai.assert.strictEqual(history[1].value, expected1);
+            const testCase = bash.execute(input, mockState);
+            return testCase.then((newState) => {
+                const { history } = newState;
+                chai.assert.strictEqual(history.length, 2);
+                chai.assert.strictEqual(history[0].value, input);
+                chai.assert.strictEqual(history[1].value, expected1);
+            });
         });
 
     });
@@ -244,4 +276,3 @@ describe('bash class methods', () => {
     });
 
 });
-
