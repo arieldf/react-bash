@@ -1,4 +1,5 @@
 import chai from 'chai';
+import sinon from 'sinon';
 import { stateFactory } from './factories';
 import Bash from '../src/bash';
 import * as BaseCommands from '../src/commands';
@@ -358,6 +359,23 @@ describe('bash commands', () => {
             const { structure } = bash.commands.rm.exec(state, { args: { 0: 'dir1' }, flags: { R: true } });
             chai.assert.isUndefined(structure.dir1);
         });
+    });
+
+    describe('sleep', () => {
+
+        it('should exist', () => {
+            chai.assert.isFunction(bash.commands.sleep.exec);
+        });
+
+        it('should end after the given duration', () => {
+            const start = (new Date()).getTime();
+            const testCase = bash.commands.sleep.exec({}, { args: { 0: 0.25 } });
+            return testCase.then(() => {
+                const elapsed = (new Date()).getTime() - start;
+                chai.assert.isAtMost(elapsed, 300);
+            });
+        });
+
     });
 
 });

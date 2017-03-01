@@ -81,6 +81,7 @@ describe('bash class methods', () => {
             { command: 'cat', args: 'file1' },
             { command: 'mkdir', args: 'testDir' },
             { command: 'cd', args: 'dir1' },
+            { command: 'sleep', args: 0.1 },
         ];
 
         commands.forEach(data => {
