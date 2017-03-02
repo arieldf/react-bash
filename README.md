@@ -69,9 +69,33 @@ Similarly to synchronous extensions, the promise should resolve to the new state
 If it fails, the rejected error (if available) will be printed in the terminal:
 
 ```js
-export const clear = {
-    exec: ({ structure, history, cwd }, command) => {
-        return Promise.resolve({ structure, cwd, history: [] });
+export const sleep = {
+    exec: (state, { args }) => {
+        let duration = parseFloat(args[0]);
+        if (isNaN(duration)) {
+            duration = 0;
+        }
+        return new Promise((resolve) => setTimeout(() => resolve(state), duration * 1000));
+    },
+};
+```
+
+Extensions may also return [generators](https://developer.mozilla.org/en/docs/Web/JavaScript/Guide/Iterators_and_Generators),
+to handle commands that outputs several steps.
+Note that generators may also yield promises.
+
+```js
+export const langc = {
+    exec: (state, { args }) => {
+        return (function* () {
+            let nextState = Object.assign({}, state);
+            for (const value of ['building ...', 'linking ...']) {
+                nextState = Object.assign({}, nextState, {
+                    history: nextState.history.concat({ value })
+                });
+                yield nextState;
+            }
+        }());
     },
 };
 ```
