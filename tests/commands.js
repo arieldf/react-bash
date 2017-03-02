@@ -1,5 +1,4 @@
 import chai from 'chai';
-import sinon from 'sinon';
 import { stateFactory } from './factories';
 import Bash from '../src/bash';
 import * as BaseCommands from '../src/commands';

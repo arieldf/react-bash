@@ -94,7 +94,7 @@ describe('ReactBash component', () => {
         let instance;
 
         beforeEach(() => {
-            wrapper = shallow(<Terminal _observeBashExecutions={ true } />);
+            wrapper = shallow(<Terminal observeBashExecutions />);
             instance = wrapper.instance();
             instance.refs = { input: { value: '', scrollIntoView: () => {} } };
         });
@@ -118,7 +118,7 @@ describe('ReactBash component', () => {
             chai.assert.strictEqual(wrapper.state().history.length, 1);
             wrapper.find('input').simulate('keydown', keyEvent(17));
             wrapper.find('input').simulate('keyup', keyEvent(76));
-            return wrapper.state()._bashExecutionsObserver.then(() => {
+            return wrapper.state().bashExecutionsObserver.then(() => {
                 chai.assert.strictEqual(wrapper.state().history.length, 0);
             });
         });
@@ -168,7 +168,7 @@ describe('ReactBash component', () => {
         let bashStub;
 
         beforeEach(() => {
-            wrapper = shallow(<Terminal _observeBashExecutions={ true } />);
+            wrapper = shallow(<Terminal observeBashExecutions />);
             instance = wrapper.instance();
             instance.refs = { input: { value: 'Foo', scrollIntoView: () => {} } };
             bashStub = sinon.stub(instance.Bash, 'execute')
@@ -182,7 +182,7 @@ describe('ReactBash component', () => {
 
         it('should update state', () => {
             wrapper.find('form').simulate('submit', submitEvent('Foo'));
-            return wrapper.state()._bashExecutionsObserver.then(() => {
+            return wrapper.state().bashExecutionsObserver.then(() => {
                 chai.assert.strictEqual(wrapper.state().cwd, 'bar');
             });
         });

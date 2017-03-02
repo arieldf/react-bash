@@ -74,8 +74,8 @@ describe('bash class methods', () => {
         });
 
         it('should handle fulfilled promises', () => {
-            const bash = new Bash({
-                test: { exec: (state) => Promise.resolve('foo') }
+            bash = new Bash({
+                test: { exec: () => Promise.resolve('foo') },
             });
 
             const testCase = bash.execute('test', {});
@@ -85,8 +85,8 @@ describe('bash class methods', () => {
         });
 
         it('should handle rejected promises', () => {
-            const bash = new Bash({
-                test: { exec: (state) => Promise.reject(new Error('foo')) }
+            bash = new Bash({
+                test: { exec: () => Promise.reject(new Error('foo')) },
             });
 
             const testCase = bash.execute('test', mockState);
