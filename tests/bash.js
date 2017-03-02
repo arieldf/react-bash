@@ -97,6 +97,21 @@ describe('bash class methods', () => {
             });
         });
 
+        it('should handle generator commands', () => {
+            bash = new Bash({
+                test: {
+                    exec: () => {
+                        return (function* () { for (const i of [1, 2, 3]) { yield i; } }());
+                    },
+                },
+            });
+
+            const testCase = bash.execute('test', {});
+            return testCase.then((newState) => {
+                chai.assert.strictEqual(newState, 3);
+            });
+        });
+
         // Full command testing is in tests/command.js
         const commands = [
             { command: 'help' },
@@ -153,7 +168,7 @@ describe('bash class methods', () => {
         });
 
         it('should handle multiple commands with successful &&', () => {
-            const testCase = bash.execute('cd dir1; pwd', mockState);
+            const testCase = bash.execute('cd dir1 && pwd', mockState);
             return testCase.then((newState) => {
                 const { history } = newState;
                 chai.assert.strictEqual(history.length, 1);
@@ -170,6 +185,41 @@ describe('bash class methods', () => {
                 chai.assert.strictEqual(history.length, 1);
                 chai.assert.strictEqual(history[0].value, expected1);
             });
+        });
+
+        describe('with a progress observer', () => {
+
+            it('should call the observer for each command separated by ;', () => {
+                let i = 0;
+                const testCase = bash.execute('cd dir1; pwd', mockState, () => { ++i; });
+                return testCase.then(() => {
+                    chai.assert.strictEqual(i, 2);
+                });
+            });
+
+            it('should call the progress observer for each command separated by &&', () => {
+                let i = 0;
+                const testCase = bash.execute('cd dir1 && pwd', mockState, () => { ++i; });
+                return testCase.then(() => {
+                    chai.assert.strictEqual(i, 2);
+                });
+            });
+
+            it('should call the observer for generator commands', () => {
+                bash = new Bash({
+                    test: {
+                        exec: () => {
+                            return (function* () { for (const i of [1, 2, 3]) { yield i; } }());
+                        },
+                    },
+                });
+
+                let i = 1;
+                return bash.execute('test', {}, (newState) => {
+                    chai.assert.strictEqual(newState, i++);
+                });
+            });
+
         });
 
     });
